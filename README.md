@@ -1,5 +1,6 @@
 # 07_Devops_Containers_with_Docker
 
+### Starting individual image as container
 *docker run -d \
 > -p 27017:27017 \
 > --network mongo-network \
@@ -19,11 +20,14 @@
 > -e ME_CONFIG_MONGODB_SERVER=mongodb \
 > mongo-express*
 
+### Docker Compose
 To automate starting multiple containers we can use **docker compose file**:
 - it is not necessary to create a network, docker compose will creates default network where containers are running. 
-*docker compose -f <yamlfile> up*
-Mongo Express has to wait until MongoDB is started - it allows command *restart: always*
+Start containers: *docker compose -f <yamlfile> up*
+Stop containers: *docker compose -f <yamlfile> down*
+Mongo Express has to wait until MongoDB is started - it allows command defined inside docker compose file:  *restart: always*
 
+### Build Docker Image
 **To build docker image** a Dockerfile must be created before. A docker image can be started by running the command: 
 *docker build -t my-app:1.0 <location_where_to_build> *
 Dockerfile usually contains following commands:
@@ -34,19 +38,20 @@ Dockerfile usually contains following commands:
 - WORKDIR - following commands in Dockerfile will be executed in this directory
 - CMD - entrypoint 
 
+### Docker Image in the private repository
 **To access private repository** a user, role, blob store and remote repository itself must be created in Nexus UI. 
-Docker client cannot connect to URL, instead a port has to be released for connection, the port number is different from port where the nexus is running (e.g.8083). This port must be also allowed in firewall configuration. It can be checked by *ss -tulpn* or by *nestat-lnpt*, that the port is listening.  
-Before the first login to nexus repository, the issuing of the login token must be set in Realms in Nexus UI - `Docker Bearer Token` has to be active.
-In case the unsecured HTTP protocol is used to connect to nexus repository, a file `/etc/docker/daemon.json` must be created and insecured registry has to be added:
+Docker client cannot connect to URL, instead a port has to be released for connection, the port number is different from port where the nexus is running (e.g.8083). This port must be also allowed in firewall configuration. It can be checked by *ss -tulpn* or by *nestat-lnpt*, that the port is listening to.  
+Before the first login to nexus repository, the issuing of the login token must happen. In Nexus UI - Realms - `Docker Bearer Token` has to be active.
+In case the unsecured HTTP protocol is used to connect to nexus repository, a file `/etc/docker/daemon.json` must be created and insecured registry has to be specified here:
 *{
   "insecure-registries": ["ip_address:port"]
 }*
-After the first login the release token has been added to `~/.docker/config.json`
+After the first login the release token is added to `~/.docker/config.json`
 
-Rename the image to include also target repository name: 
+Image has to be renamed to include also target repository name: 
 *docker tag <original_image_name> <docker_repository_IP:port/new_image_name>*
 
-To fetch data from repository a **curl API** command using **port 8081** can be used
+To fetch data from repository a **curl API** command using **port 8081** can be used as standard GET request.
 
 To deploy an application on development server, not on the localhost, the API endpoints and mongodb URL must be adjusted. 
 
